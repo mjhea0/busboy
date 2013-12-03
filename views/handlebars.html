@@ -1,0 +1,20 @@
+<script id="entry-template" type="text/x-handlebars-template">
+	<h2></h2>
+	<div id="accordion" class='entry'>
+		{{#each bus}}
+			<h3>Route: {{route_id}} Arrival time: {{arrival_time}}</h3>
+			<div>
+				<p>Distance: {{distance}} miles</p>
+				<ul>
+					<li>Stop Name: {{stop_name}}</li>
+					<li>Stop ID: {{stop_id}}</li>
+					<li>Stop Desc: {{stop_desc}}</li>
+					<li>Stop Latitude: {{stop_lat}}</li>
+					<li>Stop Longitude: {{stop_lon}}</li>
+					<li>Trip ID: {{trip_id}}</li>
+				</ul>
+			</div>
+		{{/each}}
+	</div>
+
+</script>

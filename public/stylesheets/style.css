@@ -1,0 +1,45 @@
+body {
+  padding: 40px;
+  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+}
+
+a {
+  color: #00B7FF;
+}
+
+h1 {
+  font-size: 7em;
+  font-weight: bold;
+}
+
+.navbar {
+  min-height: 10px;
+}
+
+.row {
+  text-align: center;
+}
+
+
+#foot {
+  color: #fff;
+}
+
+.container {
+    max-width: 500px;
+}
+
+.btn-lg {
+  padding: 18px 28px;
+  font-size: 22px;
+  line-height: normal;
+  -webkit-border-radius: 8px;
+     -moz-border-radius: 8px;
+          border-radius: 8px;
+}
+
+#share {
+	max-width: 242px;
+	margin: auto;
+}
+
