@@ -1,6 +1,4 @@
-/**
- * Module dependencies.
- */
+// Module dependencies
 var express = require('express');
 var routes = require('./routes');
 var user = require('./routes/user');
@@ -14,16 +12,14 @@ var _ = require('underscore');
 var moment = require('moment');
 var range = require('moment-range');
 
-require('nko')('ymAzxVdTDuRQfCA9');
-
-//create server
+// Create server
 var server = http.createServer(app);
 
-//Start the web socket server
+// Start the web socket server
 var io = socketio.listen(server);
 
-var isProduction = (process.env.NODE_ENV === 'production');
-var port = (isProduction ? 80 : 8000);
+// Sets the port
+var port = process.env.PORT || 3001;
 
 // all environments
 app.set('views', __dirname + '/views');
@@ -39,8 +35,11 @@ app.use(express.static(path.join(__dirname, 'public')));
 if ('development' == app.get('env')) {
   app.use(express.errorHandler());
 }
-var voteko = '<iframe src="http://nodeknockout.com/iframe/refactoru" frameborder=0 scrolling=no allowtransparency=true width=115 height=25></iframe>';
 
+/*
+* TODO: move data manipulation to separate services js file
+*
+*/
 var mrdata = [];
 var distanceFrom = Number;
 var stops = [];
@@ -95,6 +94,7 @@ io.sockets.on('connection', function(socket){
 		stops = calculateDistance(data, mrdata);
 		io.sockets.emit('stops', stops);
 	});
+
 });
 
 //routes
@@ -103,19 +103,6 @@ app.get('/', function (req, res){
 });
 
 //server listen
-// server.listen(3000, function(){
-//   console.log('Express server listening on port ' + app.get('port'));
-// });
-
-server.listen(port, function(err) {
-  if (err) { console.error(err); process.exit(-1); }
-
-  // if run as root, downgrade to the owner of this file
-  if (process.getuid() === 0) {
-    require('fs').stat(__filename, function(err, stats) {
-      if (err) { return console.error(err); }
-      process.setuid(stats.uid);
-    });
-  }
-    console.log('Server listening on port: '+ port);
+server.listen(port, function() {
+  console.log('Express server listening on port ' + port);
 });
