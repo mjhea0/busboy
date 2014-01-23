@@ -12,6 +12,10 @@ h1 {
   font-weight: bold;
 }
 
+h2 {
+  text-align: center;
+}
+
 .navbar {
   min-height: 10px;
 }

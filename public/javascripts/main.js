@@ -45,6 +45,7 @@ var busData = [];
         var tt = moment().format('HH:mm:ss');
         console.log(tt);
         geoFindMe(distanceFrom, moment().format('HH:mm:ss'));
+        // TODO: change from setTimeout to promise/deferred
         setTimeout(function(){
             socket.on('stops', function(data){
                 $('#body').empty();
@@ -76,7 +77,7 @@ var busData = [];
 
     $(document).on('DOMNodeInserted', function(e){
         if (e.target.className == 'entry'){
-            console.log('it appeaers');
+            console.log('it appears');
             $('#refresh-button').text('refresh nearby bus search');
             $('#refresh-button').removeClass('btn-info').addClass('btn-success');
             $('#busimg').removeClass('animated wobble');

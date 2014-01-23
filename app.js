@@ -79,7 +79,9 @@ function calculateDistance(obj, arr) {
 
 fs.readFile(__dirname + '/public/javascripts/mr_data.js',
     function (err, data){
-        if(err){console.log(err);}
+        if(err){
+            console.log(err);
+        }
         var d = JSON.parse(data);
         mrdata = d;
     });
