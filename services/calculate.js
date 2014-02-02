@@ -1,5 +1,24 @@
-var fs = require('fs');
 var request = require('request');
+var moment = require('moment');
+var range = require('moment-range');
+var _ = require('underscore');
+
+// Requests stop times from the API
+exports.stop_times = request('http://busboy-api.herokuapp.com/api/stop_times', function(error, response, body) {
+    if( error ) { console.error('ERROR in stop_times request'); }
+    else if( response.statusCode === 200 ) {
+        console.log(body);
+        return body;
+    }
+});
+
+// Requests stops from the API
+exports.stops = request('http://busboy-api.herokuapp.com/api/stop_times', function(error, response, body) {
+    if( error ) { console.error('ERROR in stop_times request'); }
+    else if( response.statusCode === 200 ) {
+        return body;
+    }
+});
 
 //creates prototype to convert radii to distance
 Number.prototype.toRad = function() {
@@ -7,11 +26,13 @@ Number.prototype.toRad = function() {
 };
 
 //function for calculating distance
-calculateDistance = function calculateDistance(currentPlaceObj, stops) {
+exports.calculateDistance = function (currentPlaceObj, stops) {
+    var distanceFrom = Number;
     var R = 3959; // m
     var latitude = currentPlaceObj.lat;
     var longitude = currentPlaceObj.lon;
     var output = [];
+
     _.each(stops, function(stop) {
         var dLat = (stop['stop_lat'] - latitude).toRad();
         var dLon = (stop['stop_lon'] - longitude).toRad();
@@ -25,14 +46,30 @@ calculateDistance = function calculateDistance(currentPlaceObj, stops) {
             output.push(stop);
         }
     });
+    console.log('stops', output);
     return output;
 };
 
 // TODO: need function to match output of calculate distance to actual stop times
+exports.selectedStopTimes = function(selected_stops, stop_times) {
+    var i = 0,
+        stopIds = [],
+        output = [];
+    stopIds = _.pluck(selected_stops, 'stop_id');
+    var lenStopId = stopIds.length;
 
-var closestStops = calculateDistance(geolocation, stops); //geolocation comes from socket event
+    for( i; i < lenStopId; i+=1 ) {
+        var id = stopIds[i];
+        if(selected_stops[id]) {
+            output.push(selected_stops[id]);
+        }
+    }
+    console.log('seleS', output);
+    return output;
+};
 
-exports.closestTimes = function (currentPlaceObj, stop_times) {
+
+exports.closestTimes = function(currentPlaceObj, selectedStops) {
     var output = [];
     var time = currentPlaceObj.time;
     var gTime = moment().zone(420).format('HH:mm:ss');
@@ -41,11 +78,12 @@ exports.closestTimes = function (currentPlaceObj, stop_times) {
     var tenTime = moment().zone(420).add('m', 10).format('HH:mm:ss');
     var timeRange = moment().range(time, tenTime);
 
-    _.each(stop_times, function(stop_time) {
-        if(( stop_time['arrival_time'] > gTime )  && ( stop_time['arrival_time'] < tenTime )) {
-            output.push(stop_time);
+    _.each(selectedStops, function(selectedStop) {
+        if(( selectedStop['arrival_time'] > gTime )  && ( selectedStop['arrival_time'] < tenTime )) {
+            output.push(selectedStop);
         }
     });
+    console.log('close', output);
     return output;
 };
 
@@ -59,16 +97,5 @@ exports.closestTimes = function (currentPlaceObj, stop_times) {
 //         mrdata = d;
 //     });
 
-var stop_times = request('http://busboy-api.herokuapp.com/api/stop_times', function(error, response, body) {
-    if( error ) { console.error('ERROR in stop_times request'); }
-    else if( response.statusCode === 200 ) {
-        return body;
-    }
-});
 
-var stops = request('http://busboy-api.herokuapp.com/api/stop_times', function(error, response, body) {
-    if( error ) { console.error('ERROR in stop_times request'); }
-    else if( response.statusCode === 200 ) {
-        return body;
-    }
-});
+

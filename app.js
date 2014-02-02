@@ -37,30 +37,28 @@ if ('development' == app.get('env')) {
   app.use(express.errorHandler());
 }
 
-/*
-* TODO: move data manipulation to separate services js file
-*
-*/
-var mrdata = [];
-var distanceFrom = Number;
-var stops = [];
-
-//socket events
-io.sockets.on('connection', function(socket){
-	console.log('sockets connected');
-
-	//takes current location from client and runs
-	//it against stops and send back nearby stops
-	socket.on('currentLoc', function(data){
-		stops = calculate.calculateDistance(data, mrdata);
-		io.sockets.emit('stops', stops);
-	});
-
-});
-
 //routes
 app.get('/', function (req, res){
 	res.render('index');
+});
+
+//socket events
+io.sockets.on('connection', function(socket){
+    console.log('sockets connected');
+
+    //takes current location from client and runs
+    //it against stops and send back nearby stops
+    socket.on('currentLoc', function(data){
+        var closestStops = [],
+            selectedStops = [],
+            response = [];
+        
+        closestStops = calculate.calculateDistance(data, calculate.stops);
+        selectedStops = calculate.selectedStopTimes(closestStops, calculate.stop_times);
+        response = calculate.closestTimes(data, selectedStops);
+        io.sockets.emit('stops', response);
+    });
+
 });
 
 //server listen
