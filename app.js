@@ -17,12 +17,13 @@ var calculate = require('./services/calculate');
 var server = http.createServer(app);
 
 // Start the web socket server
-var io = socketio.listen(server);
+// var io = socketio.listen(server);
 
 // Sets the port
 var port = process.env.PORT || 3001;
 
 // all environments
+app.use(require('prerender-node'));
 app.set('views', __dirname + '/views');
 app.set('view engine', 'jade');
 app.use(express.favicon());
@@ -42,24 +43,35 @@ app.get('/', function (req, res){
 	res.render('index');
 });
 
-//socket events
-io.sockets.on('connection', function(socket){
-    console.log('sockets connected');
+// //socket events
+// io.sockets.on('connection', function(socket){
+//     console.log('sockets connected');
 
-    //takes current location from client and runs
-    //it against stops and send back nearby stops
-    socket.on('currentLoc', function(data){
-        var closestStops = [],
-            selectedStops = [],
-            response = [];
-        
-        closestStops = calculate.calculateDistance(data, calculate.stops);
-        selectedStops = calculate.selectedStopTimes(closestStops, calculate.stop_times);
-        response = calculate.closestTimes(data, selectedStops);
-        io.sockets.emit('stops', response);
-    });
+//     //takes current location from client and runs
+//     //it against stops and send back nearby stops
+//     socket.on('currentLoc', function(data){
+//         var closestStops = [],
+//             selectedStops = [],
+//             response = [];
+//         console.log('cs', calculate.stops);
+//         closestStops = calculate.calculateDistance(data, calculate.stops);
+//         selectedStops = calculate.selectedStopTimes(closestStops, calculate.stop_times);
+//         response = calculate.closestTimes(data, selectedStops);
+//         io.sockets.emit('stops', response);
+//     });
+// });
 
+app.post('/currentLoc', function(req, res) {
+    var data = req.body,
+        closestStops = [],
+        selectedStops = [],
+        response = [];
+    closestStops = calculate.calculateDistance(data, calculate.stops);
+    selectedStops = calculate.selectedStopTimes(closestStops, calculate.stop_times);
+    response = calculate.closestTimes(data, selectedStops);
+    res.send(response);
 });
+
 
 //server listen
 server.listen(port, function() {

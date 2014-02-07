@@ -8,73 +8,83 @@ var source   = $("#entry-template").html();
 var template = Handlebars.compile(source);
 
 //socket startup
-var socket = io.connect();
-socket.on('connect', function(){
-    console.log('Hello the client is connected');
-});
+// var socket = io.connect();
+// socket.on('connect', function(){
+//     console.log('Hello the client is connected');
+// });
 
 //variables
 var geoObj ={};
-var distanceFrom = 0.5;  //will be set by the client
 var busData = [];
 
-//finds current location
-    var geoFindMe = function (distanceFrom, now) {
-        if (!navigator.geolocation){
+// Sets distance from on the geoObj
+geoObj.distanceFrom = 0.5; //$().val();
+
+    // Finds current location
+    // API works with browsers and Phonegap
+    var geolocate = function () {
+        if ( !navigator.geolocation ){
             console.log("Geolocation is not supported by your browser");
         }
         function success(position) {
-            var latitude  = position.coords.latitude;
-            var longitude = position.coords.longitude;
-            geoObj = {
-                lat : latitude,
-                lon : longitude,
-                distanceFrom : distanceFrom,
-                time: now
-            };
-            socket.emit('currentLoc', geoObj);
+            geoObj.latitude  = position.coords.latitude;
+            geoObj.longitude = position.coords.longitude;
+
+            $.post('currentLoc', geoObj);
+            
             }
+
         function error() {
             console.error("Unable to retrieve your location");
         }
+
         navigator.geolocation.getCurrentPosition(success, error);
     };
 
     //socket event that receives data from server
     $('#refresh-button').on('click', function(){
-        var tt = moment().format('HH:mm:ss');
-        console.log(tt);
-        geoFindMe(distanceFrom, moment().format('HH:mm:ss'));
-        // TODO: change from setTimeout to promise/deferred
-        setTimeout(function(){
-            socket.on('stops', function(data){
-                $('#body').empty();
-                busData = _.sortBy(data, function(arr){
-                    return arr['distance'];
-                });
-                if(busData.length > 0){
-                    var context = {bus : busData};
-                    var html = template(context);
-                    $('#body').html(html);
-                    $("#accordion").accordion({
-                        collapsible: true
-                    });
-                }
-                else{
-                    $('#body').html('<h2>No buses nearby</h2>');
-                }
-            });
-        }, 2000);
-    });
+        // Sets current time onto the geolocate object
+        geoObj.time = moment().format('HH:mm:ss');
+        
+        geolocate();
 
+        var busDataGet = $.get('/currentLoc', function(data){
+                $('#body').empty();
+                });
+
+            $.when(busDataGet).then(
+                _.sortBy(data, function(arr) {
+                    return arr['distance'];
+                })).done(
+                    function() {
+                        console.log(data);
+
+                        if(data.length > 0){
+                            var context = {bus : data};
+                            var html = template(context);
+                            $('#body').html(html);
+                            $("#accordion").accordion({
+                                collapsible: true
+                            });
+                        }
+                        else{
+                            $('#body').html('<h2>No buses nearby</h2>');
+                        }
+                    });
+        });
+
+    // Sets the accordion ui from jQueryUI
     $("#accordion").accordion({
       collapsible: true
     });
 
+    // Click event that enables the animated wobble on the bus
     $('#refresh-button').on('click', function(){
         $('#busimg').addClass('animated wobble');
     });
 
+    // Listens for the accordion to be added then stops the bus
+    // TODO: See if this can be changed if someone wants to reset
     $(document).on('DOMNodeInserted', function(e){
         if (e.target.className == 'entry'){
             console.log('it appears');
@@ -83,33 +93,5 @@ var busData = [];
             $('#busimg').removeClass('animated wobble');
         }
     });
-    
 
-    // //progressbar timer
-    // $('#refresh-button').on('click', function(){
-    //     $('#progressbar').removeClass('hidden');
-    //     var progressbar = $( "#progressbar" ),
-    //       progressLabel = $( ".progress-label" );
-     
-    //     progressbar.progressbar({
-    //       value: false,
-    //       change: function() {
-    //         progressLabel.text( progressbar.progressbar( "value" ) + "%" );
-    //       },
-    //       complete: function() {
-    //         progressLabel.text( "Complete!" );
-    //       }
-    //     });
-     
-    //     function progress() {
-    //       var val = progressbar.progressbar( "value" ) || 0;
-     
-    //       progressbar.progressbar( "value", val + 1 );
-     
-    //       if ( val < 99 ) {
-    //         setTimeout( progress, 100 );
-    //       }
-    //     }
-    //     setTimeout( progress, 3000 );
-    // });
 });

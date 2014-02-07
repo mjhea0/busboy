@@ -4,18 +4,19 @@ var range = require('moment-range');
 var _ = require('underscore');
 
 // Requests stop times from the API
-exports.stop_times = request('http://busboy-api.herokuapp.com/api/stop_times', function(error, response, body) {
+var stop_times = request('http://busboy-api.herokuapp.com/api/stop_times', function(error, response, body) {
     if( error ) { console.error('ERROR in stop_times request'); }
     else if( response.statusCode === 200 ) {
-        console.log(body);
+        console.log('bs', body[1]);
         return body;
     }
 });
 
 // Requests stops from the API
-exports.stops = request('http://busboy-api.herokuapp.com/api/stop_times', function(error, response, body) {
+var stops = request('http://busboy-api.herokuapp.com/api/stops', function(error, response, body) {
     if( error ) { console.error('ERROR in stop_times request'); }
     else if( response.statusCode === 200 ) {
+        //console.log('bs1', body);
         return body;
     }
 });
@@ -29,8 +30,8 @@ Number.prototype.toRad = function() {
 exports.calculateDistance = function (currentPlaceObj, stops) {
     var distanceFrom = Number;
     var R = 3959; // m
-    var latitude = currentPlaceObj.lat;
-    var longitude = currentPlaceObj.lon;
+    var latitude = currentPlaceObj.latitude;
+    var longitude = currentPlaceObj.longitude;
     var output = [];
 
     _.each(stops, function(stop) {
