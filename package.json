@@ -17,7 +17,9 @@
     "moment": "~2.4.0",
     "moment-range": "~0.1.7",
     "node-static": "*",
-    "nko": "*"
+    "nko": "*",
+    "request": "~2.33.0",
+    "prerender-node": "~0.1.15"
   },
   "engines": {
     "node": "0.10.x"
