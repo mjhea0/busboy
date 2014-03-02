@@ -23,55 +23,49 @@ geoObj.distanceFrom = 0.5; //$().val();
     // Finds current location
     // API works with browsers and Phonegap
     var geolocate = function () {
+        var deferred = $.Deferred();
         if ( !navigator.geolocation ){
             console.log("Geolocation is not supported by your browser");
         }
         function success(position) {
             geoObj.latitude  = position.coords.latitude;
             geoObj.longitude = position.coords.longitude;
-
-            $.post('currentLoc', geoObj);
-            
+            geoObj.time = moment().format('HH:mm:ss');
+            deferred.resolve(geoObj);
             }
 
         function error() {
-            console.error("Unable to retrieve your location");
+            deferred.error(console.error("Unable to retrieve your location"));
         }
 
         navigator.geolocation.getCurrentPosition(success, error);
+        return deferred.promise();
     };
 
     //socket event that receives data from server
-    $('#refresh-button').on('click', function(){
-        // Sets current time onto the geolocate object
-        geoObj.time = moment().format('HH:mm:ss');
-        
-        geolocate();
-
-        var busDataGet = $.get('/currentLoc', function(data){
-                $('#body').empty();
-                });
-
-            $.when(busDataGet).then(
-                _.sortBy(data, function(arr) {
+    $('#refresh-button').on('click', function() {
+        console.log('click');
+        geolocate().then(function(geoObj) {
+            console.log('loc_data', geoObj);
+            $.post('/currentLoc', geoObj).done(function(stopData) {
+                console.log('stop_data', stopData);
+                _.sortBy(stopData, function(arr) {
                     return arr['distance'];
-                })).done(
-                    function() {
-                        console.log(data);
-
-                        if(data.length > 0){
-                            var context = {bus : data};
-                            var html = template(context);
-                            $('#body').html(html);
-                            $("#accordion").accordion({
-                                collapsible: true
-                            });
-                        }
-                        else{
-                            $('#body').html('<h2>No buses nearby</h2>');
-                        }
+                });
+                if (stopData.length > 0) {
+                    var context = {bus : stopData};
+                    var html = template(context);
+                    $('#body').html(html);
+                    $("#accordion").accordion({
+                        collapsible: true
                     });
+                } else {
+                    $('#body').html('<h2>No buses nearby</h2>');
+                }
+                });
+            });
         });
+    // });
 
     // Sets the accordion ui from jQueryUI
     $("#accordion").accordion({

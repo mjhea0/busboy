@@ -9,13 +9,13 @@ var DeviceDetection = {
     },
 
     isPhone: function() {
-        return isAndroid() || isIOS();
+        return this.isAndroid() || this.isIOS();
     },
 
     isBrowser: function() {
-        return !isAndroid() && !isIOS();
+        return !this.isAndroid() && !this.isIOS();
     }
 
 };
 
-module.exports = DeviceDetection;
+// module.exports = DeviceDetection;

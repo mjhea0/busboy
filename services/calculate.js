@@ -1,25 +1,8 @@
-var request = require('request');
-var moment = require('moment');
-var range = require('moment-range');
-var _ = require('underscore');
-
-// Requests stop times from the API
-var stop_times = request('http://busboy-api.herokuapp.com/api/stop_times', function(error, response, body) {
-    if( error ) { console.error('ERROR in stop_times request'); }
-    else if( response.statusCode === 200 ) {
-        console.log('bs', body[1]);
-        return body;
-    }
-});
-
-// Requests stops from the API
-var stops = request('http://busboy-api.herokuapp.com/api/stops', function(error, response, body) {
-    if( error ) { console.error('ERROR in stop_times request'); }
-    else if( response.statusCode === 200 ) {
-        //console.log('bs1', body);
-        return body;
-    }
-});
+var request = require('request'),
+    moment = require('moment'),
+    range = require('moment-range'),
+    _ = require('underscore'),
+    util = require('util');
 
 //creates prototype to convert radii to distance
 Number.prototype.toRad = function() {
@@ -28,17 +11,20 @@ Number.prototype.toRad = function() {
 
 //function for calculating distance
 exports.calculateDistance = function (currentPlaceObj, stops) {
-    var distanceFrom = Number;
-    var R = 3959; // m
-    var latitude = currentPlaceObj.latitude;
-    var longitude = currentPlaceObj.longitude;
-    var output = [];
-
+    var distanceFrom = Number,
+        R = 3959, // m
+        latitude = parseInt(currentPlaceObj.latitude, 10),
+        longitude = parseInt(currentPlaceObj.longitude, 10),
+        output = [];
+    console.log('len: ', stops.length);
     _.each(stops, function(stop) {
-        var dLat = (stop['stop_lat'] - latitude).toRad();
-        var dLon = (stop['stop_lon'] - longitude).toRad();
+        var stopLat = parseInt(stop['stop_lat'], 10),
+            stopLon = parseInt(stop['stop_lon'], 10),
+            dLat = (stopLat - latitude).toRad(),
+            dLon = (stopLon - longitude).toRad();
         var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-            Math.cos(latitude.toRad()) * Math.cos(stop['stop_lat'].toRad()) *
+            Math.cos(latitude.toRad()) *
+            Math.cos(stopLat.toRad()) *
             Math.sin(dLon / 2) * Math.sin(dLon / 2);
         var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         var d = R * c;
@@ -46,7 +32,7 @@ exports.calculateDistance = function (currentPlaceObj, stops) {
         if( stop['distance'] <= currentPlaceObj['distanceFrom'] ) {
             output.push(stop);
         }
-    });
+   });
     console.log('stops', output);
     return output;
 };

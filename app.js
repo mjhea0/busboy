@@ -1,17 +1,15 @@
 // Module dependencies
-var express = require('express');
-var routes = require('./routes');
-var user = require('./routes/user');
-var http = require('http');
-var path = require('path');
-var fs = require('fs');
-var static = require('node-static');
-var app = express();
-var socketio = require('socket.io');
-var _ = require('underscore');
-var moment = require('moment');
-var range = require('moment-range');
-var calculate = require('./services/calculate');
+var express = require('express'),
+    routes = require('./routes'),
+    user = require('./routes/user'),
+    http = require('http'),
+    path = require('path'),
+    fs = require('fs'),
+    static = require('node-static'),
+    app = express(),
+    calculate = require('./services/calculate'),
+    api = require('./services/api'),
+    Q = require('q');
 
 // Create server
 var server = http.createServer(app);
@@ -62,16 +60,16 @@ app.get('/', function (req, res){
 // });
 
 app.post('/currentLoc', function(req, res) {
-    var data = req.body,
-        closestStops = [],
-        selectedStops = [],
-        response = [];
-    closestStops = calculate.calculateDistance(data, calculate.stops);
-    selectedStops = calculate.selectedStopTimes(closestStops, calculate.stop_times);
-    response = calculate.closestTimes(data, selectedStops);
-    res.send(response);
+    var location = req.body;
+    api.getStops().done(function(stopData) {
+        var closestStops = calculate.calculateDistance(location, stopData);
+        api.getStopTimes().done(function(stopTimeData) {
+            var selectedStops = calculate.selectedStopTimes(closestStops, stopTimeData),
+                response = calculate.closestTimes(location, selectedStops);
+            res.send(response);
+        });
+    });
 });
-
 
 //server listen
 server.listen(port, function() {

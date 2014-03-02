@@ -47,3 +47,13 @@ h2 {
 	margin: auto;
 }
 
+@media all and (max-width: 480px) {
+  footer {
+    display: none;
+  }
+
+  #share {
+    display: none;
+  }
+}
+
