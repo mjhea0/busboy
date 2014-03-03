@@ -12,6 +12,9 @@ var _ = require('underscore');
 var moment = require('moment');
 var range = require('moment-range');
 var calculate = require('./services/calculate');
+var Q = require("q");
+var request = Q.denodeify(require('request'));
+var util = require('util');
 
 // Create server
 var server = http.createServer(app);
@@ -61,12 +64,57 @@ app.get('/', function (req, res){
 //     });
 // });
 
+// Requests stop times from the API
+var stop_times = request('http://busboy-api.herokuapp.com/api/stop_times', function(error, response, body) {
+    if( error ) { console.error('ERROR in stop_times request'); }
+    else if( response.statusCode === 200 ) {
+        console.log('bs', body[1]);
+        return body;
+    }
+});
+
+// // Requests stops from the API
+// var stops = []
+// request('http://busboy-api.herokuapp.com/api/stops', function(error, response, body) {
+//     if( error ) { console.error('ERROR in stop_times request'); }
+//     else if( response.statusCode === 200 ) {
+//         //console.log('bs1', body);
+//         // console.log(body)
+//         var test = body;
+//     }
+//     return(stops.push(test));
+// });
+
+// console.log(stops)
+
+
+
+function getStops() {
+  var response = request({
+    uri: "http://busboy-api.herokuapp.com/api/stops",
+    method: 'GET'
+  })
+  response.then(function (res) {
+    if (res.statusCode >= 300) {
+      throw new Error('Server responded with status code ' + res.statusCode)
+    } else {
+      // return res.body.toString()
+      res[0].body.toString()
+    }
+  })
+}
+
+
+var test = getStops()
+
+console.log(util.inspect(test))
+
 app.post('/currentLoc', function(req, res) {
     var data = req.body,
         closestStops = [],
         selectedStops = [],
         response = [];
-    closestStops = calculate.calculateDistance(data, calculate.stops);
+    closestStops = calculate.calculateDistance(data, getStops());
     selectedStops = calculate.selectedStopTimes(closestStops, calculate.stop_times);
     response = calculate.closestTimes(data, selectedStops);
     res.send(response);

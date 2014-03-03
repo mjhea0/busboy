@@ -2,24 +2,11 @@ var request = require('request');
 var moment = require('moment');
 var range = require('moment-range');
 var _ = require('underscore');
+var util = require('util');
 
-// Requests stop times from the API
-var stop_times = request('http://busboy-api.herokuapp.com/api/stop_times', function(error, response, body) {
-    if( error ) { console.error('ERROR in stop_times request'); }
-    else if( response.statusCode === 200 ) {
-        console.log('bs', body[1]);
-        return body;
-    }
-});
 
-// Requests stops from the API
-var stops = request('http://busboy-api.herokuapp.com/api/stops', function(error, response, body) {
-    if( error ) { console.error('ERROR in stop_times request'); }
-    else if( response.statusCode === 200 ) {
-        //console.log('bs1', body);
-        return body;
-    }
-});
+
+
 
 //creates prototype to convert radii to distance
 Number.prototype.toRad = function() {
@@ -33,13 +20,16 @@ exports.calculateDistance = function (currentPlaceObj, stops) {
     var latitude = currentPlaceObj.latitude;
     var longitude = currentPlaceObj.longitude;
     var output = [];
-
+    parseInt(latitude)
+    parseInt(longitude)
+    console.log(util.inspect(stops))
     _.each(stops, function(stop) {
-        var dLat = (stop['stop_lat'] - latitude).toRad();
-        var dLon = (stop['stop_lon'] - longitude).toRad();
+        var dLat = (parseInt(stop['stop_lat']) - latitude).toRad();
+        var dLon = (parseInt(stop['stop_lon']) - longitude).toRad();
         var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-            Math.cos(latitude.toRad()) * Math.cos(stop['stop_lat'].toRad()) *
+            Math.cos(latitude.toRad()) * Math.cos(parseInt(stop['stop_lat']).toRad()) *
             Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        console.log(a)
         var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         var d = R * c;
         stop['distance'] = Math.round(d*100)/100;
